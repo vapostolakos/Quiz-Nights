@@ -1,0 +1,1077 @@
+﻿<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz 12 - General</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --primary: #0ea5e9;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --nav: #475569;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: #334155;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Segoe UI", system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background:
+                radial-gradient(circle at top, rgba(14,165,233,0.18), transparent 30%),
+                linear-gradient(180deg, #020617 0%, #0f172a 60%, #111827 100%);
+            color: var(--text);
+            padding: 1rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: "?\00a0\00a0\00a0\00a0?\00a0\00a0\00a0\00a0?\00a0\00a0\00a0\00a0?\00a0\00a0\00a0\00a0?\A?\00a0\00a0\00a0\00a0?\00a0\00a0\00a0\00a0?\00a0\00a0\00a0\00a0?\00a0\00a0\00a0\00a0?\A?\00a0\00a0\00a0\00a0?\00a0\00a0\00a0\00a0?\00a0\00a0\00a0\00a0?\00a0\00a0\00a0\00a0?";
+            position: fixed;
+            inset: 0;
+            font-size: clamp(5.8rem, 13vw, 10rem);
+            line-height: 1.12;
+            letter-spacing: 2.1rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.14);
+            text-shadow:
+                0 0 10px rgba(255, 255, 255, 0.08),
+                0 0 24px rgba(255, 255, 255, 0.04);
+            z-index: 0;
+            pointer-events: none;
+            transform: rotate(-14deg) scale(1.22) translate(-1%, -4%);
+            opacity: 1;
+        }
+        body::after {
+            content: "Quiz Nights";
+            position: fixed;
+            top: 3.5vh;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            font-size: clamp(2.8rem, 7vw, 5.8rem);
+            font-weight: 900;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: rgba(245, 158, 11, 0.2);
+            text-shadow:
+                0 0 10px rgba(245, 158, 11, 0.12),
+                0 10px 30px rgba(0, 0, 0, 0.28);
+            z-index: 0;
+            pointer-events: none;
+            transform: none;
+        }
+        .container {
+            width: min(100%, 720px);
+            background: rgba(30, 41, 59, 0.96);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 1.5rem;
+            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+            position: relative;
+            z-index: 1;
+        }
+        .hidden { display: none !important; }
+        h1 {
+            text-align: center;
+            color: var(--accent);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+        }
+        p.sub {
+            text-align: center;
+            color: var(--muted);
+            margin-bottom: 1.25rem;
+        }
+        input, button {
+            width: 100%;
+            border-radius: 12px;
+            font: inherit;
+        }
+        input {
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            background: #0f172a;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+        }
+        button {
+            border: none;
+            padding: 12px 14px;
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+        }
+        button:hover:not(:disabled) { transform: translateY(-1px); }
+        button:disabled { opacity: 0.45; cursor: not-allowed; }
+        .secondary { background: var(--nav); }
+        .next-active { background: var(--primary) !important; box-shadow: 0 0 18px rgba(14, 165, 233, 0.35); }
+        .top-actions, .leaderboard-actions, .nav-controls, .lifeline-container {
+            display: flex;
+            gap: 10px;
+        }
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .timer-info {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+        }
+        .timer-count {
+            color: var(--accent);
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        .timer-count.urgent { color: #f87171; }
+        #timer-wrap {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+        #timer-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--danger), var(--accent), var(--success));
+        }
+        #q-image-container { text-align: center; margin-bottom: 14px; }
+        .q-img-display {
+            max-width: 100%;
+            max-height: 220px;
+            object-fit: cover;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+        }
+        #q-hint {
+            text-align: center;
+            color: var(--muted);
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+        #q-text {
+            text-align: center;
+            line-height: 1.5;
+            margin-bottom: 14px;
+            min-height: 56px;
+        }
+        #options-box { display: grid; gap: 10px; }
+        .option-btn {
+            background: #334155;
+            color: var(--text);
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .option-btn.correct { background: var(--success); }
+        .option-btn.wrong { background: var(--danger); }
+        .option-btn.hidden-by-5050 { visibility: hidden; }
+        .audience-pct {
+            color: #fde68a;
+            font-size: 0.8rem;
+            min-width: 36px;
+            text-align: right;
+            display: none;
+        }
+        #rationale-box {
+            background: #0f172a;
+            border-left: 4px solid var(--accent);
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 14px;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .nav-controls { margin-top: 16px; }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 16px 0;
+        }
+        .summary-card {
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px;
+            text-align: center;
+        }
+        .summary-card strong {
+            display: block;
+            color: var(--accent);
+            font-size: 1.3rem;
+            margin-bottom: 4px;
+        }
+        .summary-card span {
+            color: var(--muted);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .table-wrap {
+            margin-top: 14px;
+            max-height: 340px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+        th {
+            color: var(--muted);
+            background: var(--card);
+            position: sticky;
+            top: 0;
+        }
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+        th.sortable:hover {
+            color: var(--text);
+        }
+        .highlight td { color: var(--accent); font-weight: 700; }
+        .rank-badge { display: inline-flex; min-width: 28px; justify-content: center; }
+        .leaderboard-note {
+            margin-top: 10px;
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.5;
+        }
+        .entry-row { cursor: pointer; }
+        .entry-row:hover td { background: rgba(14, 165, 233, 0.08); }
+        .details-panel {
+            margin-top: 16px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: #0f172a;
+            padding: 14px;
+        }
+        .details-panel h3 {
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+        .details-empty {
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.5;
+        }
+        .question-review {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .question-review-item {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            background: rgba(30, 41, 59, 0.75);
+        }
+        .question-review-item.correct-review { border-color: rgba(16, 185, 129, 0.45); }
+        .question-review-item.wrong-review { border-color: rgba(239, 68, 68, 0.45); }
+        .question-review-status {
+            display: inline-block;
+            margin-bottom: 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .correct-review .question-review-status { color: var(--success); }
+        .wrong-review .question-review-status { color: var(--danger); }
+        .question-review-text {
+            font-weight: 700;
+            line-height: 1.45;
+            margin-bottom: 8px;
+        }
+        .question-review-meta {
+            color: #cbd5e1;
+            line-height: 1.5;
+            font-size: 0.92rem;
+        }
+        .admin-btn { display: none; }
+        .admin-btn.visible { display: inline-block; }
+        #effect-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 3;
+        }
+        .confetti-piece {
+            position: fixed;
+            top: -20px;
+            width: 12px;
+            height: 20px;
+            border-radius: 3px;
+            opacity: 0.95;
+            animation: confetti-fall 1.8s ease-out forwards;
+        }
+        .sad-badge {
+            position: fixed;
+            left: 50%;
+            top: 24%;
+            transform: translateX(-50%) scale(0.7);
+            font-size: clamp(3.5rem, 8vw, 5rem);
+            filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.35));
+            animation: sad-pop 1.2s ease-out forwards;
+        }
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.95;
+            }
+            100% {
+                transform: translateY(110vh) rotate(540deg);
+                opacity: 0;
+            }
+        }
+        @keyframes sad-pop {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) scale(0.4);
+            }
+            20% {
+                opacity: 1;
+                transform: translateX(-50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(24px) scale(0.92);
+            }
+        }
+        @media (max-width: 640px) {
+            .container { padding: 1rem; }
+            .quiz-header, .top-actions, .leaderboard-actions, .nav-controls, .lifeline-container {
+                flex-direction: column;
+            }
+            .summary-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div id="scr-login">
+        <h1>Quiz 12 - General</h1>
+        <p class="sub">Quiz Γενικών Γνώσεων Υψηλού Επιπέδου.</p>
+        <input type="text" id="fname" placeholder="Όνομα">
+        <input type="text" id="lname" placeholder="Επώνυμο">
+        <button onclick="startQuiz()">Έναρξη Παιχνιδιού</button>
+        <div class="top-actions" style="margin-top:10px;">
+            <button class="secondary" onclick="openLeaderboard()">Leaderboard</button>
+        </div>
+    </div>
+
+    <div id="scr-quiz" class="hidden">
+        <div class="quiz-header">
+            <span id="user-display"></span>
+            <span>Ερώτηση <span id="q-num">1</span>/<span id="q-total"></span> · <span id="score-display">0</span> πόντοι</span>
+        </div>
+
+        <div class="lifeline-container">
+            <button id="btn-5050" class="secondary" onclick="use5050()">50:50</button>
+            <button id="btn-audience" class="secondary" onclick="useAudience()">Κοινό</button>
+        </div>
+
+        <div class="timer-info">
+            <span id="timer-count" class="timer-count">15s</span>
+        </div>
+        <div id="timer-wrap"><div id="timer-bar"></div></div>
+
+        <div id="q-image-container" class="hidden">
+            <img id="q-image" class="q-img-display" src="" alt="">
+        </div>
+
+        <div id="q-hint"></div>
+        <h2 id="q-text"></h2>
+        <div id="options-box"></div>
+        <div id="rationale-box" class="hidden"></div>
+
+        <div class="nav-controls">
+            <button id="btn-prev" class="secondary" onclick="goBack()" disabled>Πίσω</button>
+            <button id="btn-next" class="secondary" onclick="goNext()" disabled>Επόμενο</button>
+        </div>
+    </div>
+
+    <div id="scr-end" class="hidden">
+        <h1>Αποτελέσματα</h1>
+        <h2 id="final-msg" style="text-align:center; margin:1rem 0;"></h2>
+        <div class="summary-grid">
+            <div class="summary-card"><strong id="summary-score">0</strong><span>Score</span></div>
+            <div class="summary-card"><strong id="summary-correct">0</strong><span>Correct</span></div>
+            <div class="summary-card"><strong id="summary-rank">-</strong><span>Rank</span></div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>#</th><th>Παίκτης</th><th>Score</th><th>Accuracy</th><th>Date</th></tr></thead>
+                <tbody id="lb-body"></tbody>
+            </table>
+        </div>
+        <div class="leaderboard-actions" style="margin-top:14px;">
+            <button class="secondary" onclick="openLeaderboard()">Full Leaderboard</button>
+            <button onclick="restartQuiz()">Νέο Παιχνίδι</button>
+        </div>
+    </div>
+
+    <div id="scr-leaderboard" class="hidden">
+        <h1>Leaderboard</h1>
+        <p class="leaderboard-note">Top Players.</p>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th class="sortable" onclick="changeSort('name')">Player</th>
+                        <th class="sortable" onclick="changeSort('score')">Score</th>
+                        <th class="sortable" onclick="changeSort('accValue')">Accuracy</th>
+                        <th class="sortable" onclick="changeSort('lastPlayedTs')">Last Played</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-full-body"></tbody>
+            </table>
+        </div>
+        <div id="details-panel" class="details-panel">
+            <h3>Ανάλυση Συμμετοχής</h3>
+            <div id="details-content" class="details-empty">Πάτησε μια συμμετοχή από τον πίνακα για να δεις ποιες ερωτήσεις απαντήθηκαν σωστά και ποιες λάθος.</div>
+        </div>
+        <div class="leaderboard-actions" style="margin-top:14px;">
+            <button class="secondary" onclick="show('scr-login')">Back</button>
+            <button class="secondary" onclick="unlockAdmin()" id="btn-admin-unlock">Admin Unlock</button>
+            <button class="secondary admin-btn" onclick="clearLeaderboard()" id="btn-admin-reset">Καθαρισμός Leaderboard</button>
+            <button onclick="restartQuiz()">New Game</button>
+        </div>
+    </div>
+
+</div>
+
+<div id="effect-layer"></div>
+
+<script src="./firebase-config.js"></script>
+<script src="./Quiz12-questions.js"></script>
+<script>
+const QUIZ_TITLE = 'Quiz 12';
+const FIREBASE_SDK_VERSION = '12.7.0';
+const FIREBASE_COLLECTION = 'quiz12_leaderboard';
+const QUESTION_TIME = 15;
+const ADMIN_CONFIG = window.QUIZ_ADMIN || { username: '', password: '' };
+
+const questions = window.QUIZ12_QUESTIONS;
+
+const LEADERBOARD_KEY = FIREBASE_COLLECTION;
+let user = { f: "", l: "", id: "" };
+let cur = 0, score = 0, correct = 0;
+let timeLeft = QUESTION_TIME, timer = null;
+let answersStatus = [];
+let lifeline5050Used = false, lifelineAudienceUsed = false;
+let firebaseReady = false;
+let firebaseDb = null;
+let firebaseApi = null;
+let selectedEntryId = null;
+let adminUnlocked = sessionStorage.getItem('quiz11_admin_unlocked') === 'true';
+let leaderboardSort = { key: 'score', direction: 'desc' };
+
+function normalizePlayerId(firstName, lastName) {
+    return `${firstName.trim().toLowerCase()}::${lastName.trim().toLowerCase()}`;
+}
+
+function hasFirebaseConfig() {
+    const cfg = window.FIREBASE_CONFIG;
+    return !!(cfg && cfg.apiKey && cfg.projectId && !String(cfg.apiKey).includes('YOUR_'));
+}
+
+async function initFirebaseLeaderboard() {
+    if (!hasFirebaseConfig()) return false;
+    try {
+        const appMod = await import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-app.js`);
+        const dbMod = await import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-firestore.js`);
+        const app = appMod.initializeApp(window.FIREBASE_CONFIG);
+        firebaseDb = dbMod.getFirestore(app);
+        firebaseApi = dbMod;
+        firebaseReady = true;
+        return true;
+    } catch (e) {
+        console.error('Firebase init failed', e);
+        return false;
+    }
+}
+
+function updateAdminUi() {
+    const resetBtn = document.getElementById('btn-admin-reset');
+    const unlockBtn = document.getElementById('btn-admin-unlock');
+    if (!resetBtn || !unlockBtn) return;
+    resetBtn.classList.toggle('visible', adminUnlocked);
+    unlockBtn.textContent = adminUnlocked ? 'Admin Active' : 'Admin Unlock';
+}
+
+function createAttemptId() {
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function buildAnswerReview() {
+    return questions.map((question, index) => {
+        const answer = answersStatus[index];
+        const selectedIndex = answer ? answer.selectedIndex : -1;
+        return {
+            questionIndex: index,
+            questionText: question.q,
+            selectedIndex,
+            selectedText: selectedIndex >= 0 ? question.o[selectedIndex] : 'Καμία απάντηση',
+            correctIndex: question.a,
+            correctText: question.o[question.a],
+            isCorrect: !!answer?.isCorrect,
+            rationale: question.r
+        };
+    });
+}
+
+function getLeaderboard() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+        return Array.isArray(raw) ? raw : [];
+    } catch {
+        return [];
+    }
+}
+
+function saveLeaderboard(entries) {
+    try { localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(entries)); } catch {}
+}
+
+function sortLeaderboard(entries) {
+    const direction = leaderboardSort.direction === 'asc' ? 1 : -1;
+    const key = leaderboardSort.key;
+
+    return [...entries].sort((a, b) => {
+        let primary = 0;
+
+        if (key === 'name') {
+            primary = (a.name || '').localeCompare(b.name || '', 'el');
+        } else if (key === 'score') {
+            primary = (a.score || 0) - (b.score || 0);
+        } else if (key === 'accValue') {
+            primary = (a.accValue || 0) - (b.accValue || 0);
+        } else if (key === 'lastPlayedTs') {
+            primary = (a.lastPlayedTs || 0) - (b.lastPlayedTs || 0);
+        }
+
+        if (primary !== 0) return primary * direction;
+
+        if ((b.score || 0) !== (a.score || 0)) return (b.score || 0) - (a.score || 0);
+        if ((b.accValue || 0) !== (a.accValue || 0)) return (b.accValue || 0) - (a.accValue || 0);
+        if ((b.lastPlayedTs || 0) !== (a.lastPlayedTs || 0)) return (b.lastPlayedTs || 0) - (a.lastPlayedTs || 0);
+        return (a.name || '').localeCompare(b.name || '', 'el');
+    });
+}
+
+function changeSort(key) {
+    if (leaderboardSort.key === key) {
+        leaderboardSort.direction = leaderboardSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        leaderboardSort.key = key;
+        leaderboardSort.direction = key === 'name' ? 'asc' : 'desc';
+    }
+    renderLeaderboard(selectedEntryId || user.id);
+}
+
+function launchConfetti() {
+    const layer = document.getElementById('effect-layer');
+    if (!layer) return;
+    const colors = ['#f59e0b', '#ef4444', '#10b981', '#0ea5e9'];
+
+    for (let i = 0; i < 28; i++) {
+        const piece = document.createElement('span');
+        piece.className = 'confetti-piece';
+        piece.style.left = `${Math.random() * 100}vw`;
+        piece.style.background = colors[i % colors.length];
+        piece.style.animationDelay = `${Math.random() * 0.25}s`;
+        piece.style.animationDuration = `${1.4 + Math.random() * 0.8}s`;
+        piece.style.transform = `translateY(0) rotate(${Math.random() * 240}deg)`;
+        layer.appendChild(piece);
+        setTimeout(() => piece.remove(), 2300);
+    }
+}
+
+function showSadFace() {
+    const layer = document.getElementById('effect-layer');
+    if (!layer) return;
+    const badge = document.createElement('div');
+    badge.className = 'sad-badge';
+    badge.textContent = '😢';
+    layer.appendChild(badge);
+    setTimeout(() => badge.remove(), 1300);
+}
+
+function formatDate(ts) {
+    if (!ts) return '-';
+    return new Date(ts).toLocaleString('el-GR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function normalizeRemoteEntries(entries) {
+    return entries.map(entry => {
+        const totalCorrect = Number(entry.total_correct || 0);
+        const totalWrong = Number(entry.total_wrong || 0);
+        const totalAnswers = totalCorrect + totalWrong;
+        const accValue = totalAnswers > 0 ? Math.round((totalCorrect / totalAnswers) * 100) : 0;
+        const lastPlayed = entry.last_played || null;
+        return {
+            id: entry.id || createAttemptId(),
+            name: `${entry.first_name || ''} ${entry.last_name || ''}`.trim(),
+            score: Number(entry.score || entry.high_score || 0),
+            acc: `${accValue}%`,
+            accValue,
+            games: Number(entry.games || 1),
+            lastPlayed,
+            lastPlayedTs: lastPlayed ? Date.parse(lastPlayed) : 0,
+            answers: Array.isArray(entry.answers) ? entry.answers : []
+        };
+    });
+}
+
+async function fetchRemoteLeaderboard() {
+    const snapshot = await firebaseApi.getDocs(firebaseApi.collection(firebaseDb, FIREBASE_COLLECTION));
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+async function submitRemoteScore(payload) {
+    const docId = createAttemptId();
+    await firebaseApi.setDoc(firebaseApi.doc(firebaseDb, FIREBASE_COLLECTION, docId), {
+        id: docId,
+        player_id: normalizePlayerId(payload.first_name, payload.last_name),
+        first_name: payload.first_name,
+        last_name: payload.last_name,
+        score: Number(payload.score || 0),
+        total_correct: Number(payload.correct || 0),
+        total_wrong: Number(payload.wrong || 0),
+        games: 1,
+        answers: Array.isArray(payload.answers) ? payload.answers : [],
+        last_played: new Date().toISOString()
+    });
+}
+
+async function resetRemoteLeaderboard() {
+    const snapshot = await firebaseApi.getDocs(firebaseApi.collection(firebaseDb, FIREBASE_COLLECTION));
+    await Promise.all(snapshot.docs.map(item => firebaseApi.deleteDoc(firebaseApi.doc(firebaseDb, FIREBASE_COLLECTION, item.id))));
+}
+
+function renderLeaderboardEntries(entries, targetId = user.id) {
+    const medals = ['🥇', '🥈', '🥉'];
+    const previewRows = entries.slice(0, Math.min(entries.length, 10));
+
+    document.getElementById('lb-body').innerHTML = previewRows.length ? previewRows.map((p, i) => `
+        <tr class="${p.id === targetId ? 'highlight' : ''}">
+            <td><span class="rank-badge">${medals[i] || (i + 1)}</span></td>
+            <td>${p.name}</td>
+            <td>${p.score}</td>
+            <td>${p.acc}</td>
+            <td>${formatDate(p.lastPlayed)}</td>
+        </tr>`).join('') : '<tr><td colspan="5">Δεν υπάρχουν παίκτες ακόμα.</td></tr>';
+
+    document.getElementById('leaderboard-full-body').innerHTML = entries.length ? entries.map((p, i) => `
+        <tr class="entry-row ${p.id === targetId ? 'highlight' : ''}" onclick="showEntryDetails('${p.id}')">
+            <td><span class="rank-badge">${medals[i] || (i + 1)}</span></td>
+            <td>${p.name}</td>
+            <td>${p.score}</td>
+            <td>${p.acc}</td>
+            <td>${formatDate(p.lastPlayed)}</td>
+        </tr>`).join('') : '<tr><td colspan="5">Δεν υπάρχουν παίκτες ακόμα.</td></tr>';
+
+    if (!selectedEntryId && entries.length) {
+        selectedEntryId = targetId && entries.some(entry => entry.id === targetId) ? targetId : entries[0].id;
+    } else if (selectedEntryId && !entries.some(entry => entry.id === selectedEntryId)) {
+        selectedEntryId = entries.length ? entries[0].id : null;
+    }
+
+    renderDetailsPanel(entries.find(entry => entry.id === selectedEntryId) || null);
+    updateAdminUi();
+
+    return entries;
+}
+
+function renderDetailsPanel(entry) {
+    const detailsContent = document.getElementById('details-content');
+    if (!detailsContent) return;
+
+    if (!entry) {
+        detailsContent.className = 'details-empty';
+        detailsContent.innerHTML = 'Πάτησε μια συμμετοχή από τον πίνακα για να δεις ποιες ερωτήσεις απαντήθηκαν σωστά και ποιες λάθος.';
+        return;
+    }
+
+    const answers = Array.isArray(entry.answers) ? entry.answers : [];
+    const correctAnswers = answers.filter(answer => answer.isCorrect).length;
+    detailsContent.className = '';
+    detailsContent.innerHTML = `
+        <div class="question-review-meta">
+            <strong>${entry.name}</strong><br>
+            Score: ${entry.score} | Accuracy: ${entry.acc} | Correct: ${correctAnswers}/${questions.length}<br>
+            Played: ${formatDate(entry.lastPlayed)}
+        </div>
+        <div class="question-review">
+            ${answers.length ? answers.map((answer, index) => `
+                <div class="question-review-item ${answer.isCorrect ? 'correct-review' : 'wrong-review'}">
+                    <div class="question-review-status">${answer.isCorrect ? 'Σωστό' : 'Λάθος'}</div>
+                    <div class="question-review-text">${index + 1}. ${answer.questionText}</div>
+                    <div class="question-review-meta">
+                        Δική του απάντηση: ${answer.selectedText}<br>
+                        Σωστή απάντηση: ${answer.correctText}
+                    </div>
+                </div>
+            `).join('') : '<div class="details-empty">Δεν υπάρχουν διαθέσιμες λεπτομέρειες για αυτή τη συμμετοχή.</div>'}
+        </div>
+    `;
+}
+
+function showEntryDetails(entryId) {
+    selectedEntryId = entryId;
+    renderLeaderboard();
+}
+
+function unlockAdmin() {
+    const username = prompt('Admin username:');
+    if (username === null) return;
+    const password = prompt('Admin password:');
+    if (password === null) return;
+
+    if (username === ADMIN_CONFIG.username && password === ADMIN_CONFIG.password) {
+        adminUnlocked = true;
+        sessionStorage.setItem('quiz11_admin_unlocked', 'true');
+        updateAdminUi();
+        alert('Admin ενεργοποιήθηκε.');
+        return;
+    }
+
+    alert('Λάθος στοιχεία admin.');
+}
+
+async function renderLeaderboard(targetId = user.id) {
+    if (firebaseReady) {
+        const remoteEntries = normalizeRemoteEntries(await fetchRemoteLeaderboard());
+        return renderLeaderboardEntries(sortLeaderboard(remoteEntries), targetId);
+    }
+    return renderLeaderboardEntries(sortLeaderboard(getLeaderboard()), targetId);
+}
+
+function resetQuizState() {
+    clearInterval(timer);
+    cur = 0;
+    score = 0;
+    correct = 0;
+    timeLeft = QUESTION_TIME;
+    answersStatus = [];
+    lifeline5050Used = false;
+    lifelineAudienceUsed = false;
+}
+
+function show(id) {
+    ['scr-login', 'scr-quiz', 'scr-end', 'scr-leaderboard'].forEach(s => {
+        document.getElementById(s).classList.toggle('hidden', s !== id);
+    });
+}
+
+function updateTimerDisplay() {
+    const t = Math.ceil(timeLeft);
+    document.getElementById('timer-bar').style.width = (timeLeft / QUESTION_TIME * 100) + '%';
+    document.getElementById('timer-count').textContent = `${t}s`;
+    document.getElementById('timer-count').classList.toggle('urgent', timeLeft <= 5);
+}
+
+function startQuiz() {
+    const f = document.getElementById('fname').value.trim();
+    const l = document.getElementById('lname').value.trim();
+    if (f.length < 2 || l.length < 2) { alert('Συμπλήρωσε τα στοιχεία σου.'); return; }
+    resetQuizState();
+    user = { f, l, id: normalizePlayerId(f, l) };
+    document.getElementById('user-display').textContent = `👤 ${f} ${l}`;
+    document.getElementById('q-total').textContent = questions.length;
+    show('scr-quiz');
+    loadQuestion();
+}
+
+function openLeaderboard() {
+    renderLeaderboard();
+    show('scr-leaderboard');
+}
+
+function restartQuiz() {
+    resetQuizState();
+    document.getElementById('fname').value = '';
+    document.getElementById('lname').value = '';
+    document.getElementById('score-display').textContent = '0';
+    document.getElementById('timer-count').textContent = `${QUESTION_TIME}s`;
+    document.getElementById('timer-count').classList.remove('urgent');
+    show('scr-login');
+}
+
+async function clearLeaderboard() {
+    if (!adminUnlocked) {
+        alert('Μόνο ο διαχειριστής μπορεί να κάνει εκκαθάριση leaderboard.');
+        return;
+    }
+    if (!confirm('Θέλεις σίγουρα εκκαθάριση leaderboard;')) return;
+    if (firebaseReady) {
+        await resetRemoteLeaderboard();
+        selectedEntryId = null;
+        await renderLeaderboard();
+        alert('Το online leaderboard καθαρίστηκε.');
+        return;
+    }
+    localStorage.removeItem(LEADERBOARD_KEY);
+    selectedEntryId = null;
+    renderLeaderboardEntries([], user.id);
+}
+
+function loadQuestion() {
+    clearInterval(timer);
+    const q = questions[cur];
+    const isAnswered = answersStatus[cur] !== undefined;
+    const answeredState = answersStatus[cur];
+
+    document.getElementById('q-num').textContent = cur + 1;
+    document.getElementById('q-text').textContent = q.q;
+    document.getElementById('q-hint').textContent = q.h || '';
+
+    const imgCont = document.getElementById('q-image-container');
+    const imgEl = document.getElementById('q-image');
+    if (q.img) {
+        imgEl.src = q.img;
+        imgCont.classList.remove('hidden');
+    } else {
+        imgCont.classList.add('hidden');
+    }
+
+    document.getElementById('btn-prev').disabled = cur === 0;
+    const btnNext = document.getElementById('btn-next');
+    btnNext.disabled = true;
+    btnNext.classList.remove('next-active');
+    document.getElementById('btn-5050').disabled = lifeline5050Used || isAnswered;
+    document.getElementById('btn-audience').disabled = lifelineAudienceUsed || isAnswered;
+    document.getElementById('rationale-box').classList.add('hidden');
+
+    const box = document.getElementById('options-box');
+    box.innerHTML = '';
+    q.o.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.dataset.idx = i;
+
+        const label = document.createElement('span');
+        label.textContent = opt;
+        const pct = document.createElement('span');
+        pct.className = 'audience-pct';
+
+        btn.appendChild(label);
+        btn.appendChild(pct);
+
+        if (isAnswered) {
+            btn.disabled = true;
+            if (i === q.a) btn.classList.add('correct');
+            else if (i === answeredState?.selectedIndex && !answeredState?.isCorrect) btn.classList.add('wrong');
+        } else {
+            btn.onclick = () => checkAnswer(i);
+        }
+        box.appendChild(btn);
+    });
+
+    if (isAnswered) {
+        timeLeft = 0;
+        updateTimerDisplay();
+        showRationale(q.r);
+        btnNext.disabled = false;
+        btnNext.classList.add('next-active');
+    } else {
+        timeLeft = QUESTION_TIME;
+        updateTimerDisplay();
+        timer = setInterval(() => {
+            timeLeft = Math.max(0, timeLeft - 0.1);
+            updateTimerDisplay();
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                checkAnswer(-1);
+            }
+        }, 100);
+    }
+}
+
+function checkAnswer(idx) {
+    clearInterval(timer);
+    const q = questions[cur];
+    const isCorrect = idx === q.a;
+    answersStatus[cur] = { selectedIndex: idx, isCorrect };
+    const btns = document.querySelectorAll('.option-btn');
+    btns.forEach(btn => { btn.disabled = true; btn.onclick = null; });
+
+    if (isCorrect) {
+        btns[idx].classList.add('correct');
+        score += 100 + Math.round(timeLeft * 10);
+        correct++;
+        launchConfetti();
+    } else {
+        if (idx >= 0) btns[idx].classList.add('wrong');
+        btns[q.a].classList.add('correct');
+        showSadFace();
+    }
+
+    document.getElementById('score-display').textContent = score;
+    showRationale(q.r);
+    document.getElementById('btn-next').disabled = false;
+    document.getElementById('btn-next').classList.add('next-active');
+}
+
+function showRationale(text) {
+    const box = document.getElementById('rationale-box');
+    box.textContent = text;
+    box.classList.remove('hidden');
+}
+
+function use5050() {
+    if (lifeline5050Used) return;
+    lifeline5050Used = true;
+    document.getElementById('btn-5050').disabled = true;
+    const q = questions[cur];
+    const btns = [...document.querySelectorAll('.option-btn')];
+    const wrongIdxs = btns.map((_, i) => i).filter(i => i !== q.a).sort(() => Math.random() - 0.5);
+    wrongIdxs.slice(0, q.o.length - 2).forEach(i => {
+        btns[i].classList.add('hidden-by-5050');
+        btns[i].disabled = true;
+    });
+}
+
+function useAudience() {
+    if (lifelineAudienceUsed) return;
+    lifelineAudienceUsed = true;
+    document.getElementById('btn-audience').disabled = true;
+    const q = questions[cur];
+    const btns = [...document.querySelectorAll('.option-btn')];
+    const visible = btns.map((btn, i) => ({ btn, i })).filter(x => !x.btn.classList.contains('hidden-by-5050'));
+    const correctPct = Math.floor(Math.random() * 25) + 60;
+    const others = visible.filter(x => x.i !== q.a);
+    let leftover = 100 - correctPct;
+
+    others.forEach(({ btn }, index) => {
+        const p = index === others.length - 1 ? leftover : Math.min(Math.floor(Math.random() * leftover), leftover);
+        leftover -= p;
+        const pct = btn.querySelector('.audience-pct');
+        pct.textContent = `${p}%`;
+        pct.style.display = 'inline';
+    });
+
+    const correctBtn = btns[q.a].querySelector('.audience-pct');
+    correctBtn.textContent = `${correctPct}%`;
+    correctBtn.style.display = 'inline';
+}
+
+function goNext() {
+    cur++;
+    if (cur >= questions.length) endQuiz();
+    else loadQuestion();
+}
+
+function goBack() {
+    if (cur > 0) {
+        cur--;
+        loadQuestion();
+    }
+}
+
+async function endQuiz() {
+    clearInterval(timer);
+    show('scr-end');
+    document.getElementById('final-msg').textContent = `Τέλος! Σκορ: ${score} πόντοι`;
+    const accuracyValue = Math.round((correct / questions.length) * 100);
+    const acc = `${accuracyValue}%`;
+    const answers = buildAnswerReview();
+    const attemptId = createAttemptId();
+    const lastPlayed = Date.now();
+    let sorted = [];
+
+    if (firebaseReady) {
+        await submitRemoteScore({
+            first_name: user.f,
+            last_name: user.l,
+            score,
+            correct,
+            wrong: questions.length - correct,
+            answers
+        });
+        sorted = await renderLeaderboard();
+    } else {
+        const lb = getLeaderboard();
+        lb.push({
+            id: attemptId,
+            name: `${user.f} ${user.l}`,
+            score,
+            acc,
+            accValue: accuracyValue,
+            games: 1,
+            lastPlayed,
+            lastPlayedTs: lastPlayed,
+            answers
+        });
+
+        sorted = sortLeaderboard(lb);
+        saveLeaderboard(sorted);
+        selectedEntryId = attemptId;
+        renderLeaderboardEntries(sorted, attemptId);
+    }
+
+    if (firebaseReady) {
+        const matchedEntry = sorted.find(item =>
+            item.name === `${user.f} ${user.l}` &&
+            item.score === score &&
+            item.lastPlayedTs && Math.abs(item.lastPlayedTs - lastPlayed) < 10000
+        );
+        selectedEntryId = matchedEntry ? matchedEntry.id : (sorted[0]?.id || null);
+    }
+
+    const rank = sorted.findIndex(item => item.id === selectedEntryId) + 1;
+    document.getElementById('summary-score').textContent = score;
+    document.getElementById('summary-correct').textContent = `${correct}/${questions.length}`;
+    document.getElementById('summary-rank').textContent = rank ? `#${rank}` : '-';
+}
+
+document.title = QUIZ_TITLE;
+document.querySelector('#scr-login h1').textContent = QUIZ_TITLE;
+initFirebaseLeaderboard().finally(() => renderLeaderboard());
+</script>
+</body>
+</html>
+
