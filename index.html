@@ -89,6 +89,10 @@
             position: relative;
             z-index: 1;
         }
+        #scr-login {
+            position: relative;
+            padding-top: 96px;
+        }
         .hidden { display: none !important; }
         h1 {
             text-align: center;
@@ -116,6 +120,57 @@
         .intro-guide strong {
             color: var(--accent);
         }
+        .login-auth-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: min(320px, 100%);
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+        }
+        .login-auth-panel h3 {
+            color: var(--accent);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+        .auth-mini-actions {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .auth-mini-actions button {
+            margin: 0;
+            padding: 10px 8px;
+            font-size: 0.92rem;
+        }
+        .salmon-btn {
+            background: #f59e8b;
+            color: #3f1d16;
+        }
+        .google-btn {
+            background: #dcfce7;
+            color: #14532d;
+        }
+        .auth-status-mini {
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.45;
+        }
+        .player-profile-banner {
+            margin: 0 0 1rem;
+            background: rgba(15, 23, 42, 0.88);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px 14px;
+            color: #cbd5e1;
+        }
+        .player-profile-banner strong {
+            color: var(--accent);
+        }
         input, button {
             width: 100%;
             border-radius: 12px;
@@ -140,6 +195,14 @@
         button:hover:not(:disabled) { transform: translateY(-1px); }
         button:disabled { opacity: 0.45; cursor: not-allowed; }
         .secondary { background: var(--nav); }
+        .duel-btn {
+            background: #86efac;
+            color: #14532d;
+            box-shadow: 0 0 14px rgba(134, 239, 172, 0.22);
+        }
+        .duel-btn:hover {
+            background: #bbf7d0;
+        }
         .lifeline-container .secondary:not(:disabled) {
             background: #c026d3;
             box-shadow: 0 0 14px rgba(192, 38, 211, 0.18);
@@ -436,6 +499,15 @@
         }
         @media (max-width: 640px) {
             .container { padding: 1rem; }
+            #scr-login { padding-top: 0; }
+            .login-auth-panel {
+                position: static;
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+            .auth-mini-actions {
+                grid-template-columns: 1fr;
+            }
             .quiz-header, .top-actions, .leaderboard-actions, .nav-controls, .lifeline-container {
                 flex-direction: column;
             }
@@ -450,6 +522,18 @@
 <div class="container">
 
     <div id="scr-login">
+        <div class="login-auth-panel">
+            <h3>Login / Δημιουργία Λογαριασμού</h3>
+            <input id="main-auth-email" type="email" placeholder="Email">
+            <input id="main-auth-password" type="password" placeholder="Password">
+            <div class="auth-mini-actions">
+                <button onclick="registerMainAccount()">Register</button>
+                <button class="salmon-btn" onclick="loginMainAccount()">Login</button>
+                <button class="google-btn" onclick="loginMainWithGoogle()">Google</button>
+            </div>
+            <button class="secondary hidden" id="btn-main-logout" onclick="logoutMainAccount()">Logout</button>
+            <div id="main-auth-status" class="auth-status-mini">Συνδέσου για να παίξεις με το αποθηκευμένο προφίλ σου χωρίς να ξαναγράψεις στοιχεία.</div>
+        </div>
         <h1>Quiz 12 - General</h1>
         <p class="sub">Quiz Γενικών Γνώσεων Υψηλού Επιπέδου</p>
         <div class="intro-guide">
@@ -458,14 +542,17 @@
             και η <strong>Αλλαγή Ερώτησης</strong> κοστίζει 25%. Οι ποινές αφαιρούνται αμέσως από το σκορ σου, οπότε
             μπορεί να πέσεις και σε αρνητικό σκορ αν χρησιμοποιήσεις βοήθεια πολύ νωρίς.
         </div>
-        <input type="text" id="fname" placeholder="Όνομα">
-        <input type="text" id="lname" placeholder="Επώνυμο">
+        <div id="main-profile-banner" class="player-profile-banner hidden"></div>
+        <div id="manual-player-fields">
+            <input type="text" id="fname" placeholder="Όνομα">
+            <input type="text" id="lname" placeholder="Επώνυμο">
+        </div>
         <button onclick="startQuiz()">Έναρξη Παιχνιδιού</button>
         <div class="top-actions" style="margin-top:10px;">
-            <button class="secondary" onclick="openDuelMode()">Μονομαχία / Room</button>
+            <button class="secondary duel-btn" onclick="openDuelMode()">Μονομαχία / Room</button>
             <button class="secondary" onclick="openLeaderboard()">Leaderboard</button>
         </div>
-        <p class="leaderboard-note">Παίξε solo ή μπες σε duel room για online μονομαχία.</p>
+        <p class="leaderboard-note">Παίξε solo ή μπες σε room για online μονομαχία.</p>
     </div>
 
     <div id="scr-quiz" class="hidden">
@@ -559,6 +646,7 @@
 const QUIZ_TITLE = 'ultimate quiz';
 const FIREBASE_SDK_VERSION = '12.7.0';
 const FIREBASE_COLLECTION = 'quiz12_leaderboard';
+const PROFILE_COLLECTION = 'quiz12_duel_profiles';
 const QUESTION_TIME = 45;
 const DUEL_MODE_URL = 'https://vapostolakos.github.io/quiz12-duel/';
 const ADMIN_CONFIG = window.QUIZ_ADMIN || { username: '', password: '' };
@@ -581,6 +669,10 @@ let lifelineSwapUsed = false;
 let firebaseReady = false;
 let firebaseDb = null;
 let firebaseApi = null;
+let firebaseAuth = null;
+let authApi = null;
+let currentAuthUser = null;
+let currentAuthProfile = null;
 let selectedEntryId = null;
 let adminUnlocked = sessionStorage.getItem('quiz11_admin_unlocked') === 'true';
 let leaderboardSort = { key: 'score', direction: 'desc' };
@@ -599,9 +691,14 @@ async function initFirebaseLeaderboard() {
     try {
         const appMod = await import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-app.js`);
         const dbMod = await import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-firestore.js`);
+        const authMod = await import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-auth.js`);
         const app = appMod.initializeApp(window.FIREBASE_CONFIG);
         firebaseDb = dbMod.getFirestore(app);
+        firebaseAuth = authMod.getAuth(app);
         firebaseApi = dbMod;
+        authApi = authMod;
+        await authMod.setPersistence(firebaseAuth, authMod.browserLocalPersistence);
+        authMod.onAuthStateChanged(firebaseAuth, handleMainAuthUser);
         firebaseReady = true;
         return true;
     } catch (e) {
@@ -617,6 +714,112 @@ function updateAdminUi() {
     resetBtn.classList.toggle('visible', adminUnlocked);
     unlockBtn.textContent = adminUnlocked ? 'Admin Active' : 'Admin Unlock';
 }
+
+async function fetchMainProfile(uid) {
+    if (!firebaseReady || !uid) return null;
+    const snap = await firebaseApi.getDoc(firebaseApi.doc(firebaseDb, PROFILE_COLLECTION, uid));
+    return snap.exists() ? snap.data() : null;
+}
+
+function deriveProfileFromAuth(userAccount) {
+    const display = (userAccount?.displayName || '').trim();
+    const emailName = (userAccount?.email || 'player').split('@')[0];
+    const parts = display ? display.split(/\s+/) : [emailName];
+    const firstName = parts[0] || 'Player';
+    const lastName = parts.slice(1).join(' ') || 'Quiz';
+    return {
+        id: userAccount.uid,
+        firstName,
+        lastName,
+        nickname: display || emailName
+    };
+}
+
+function updateMainAuthUi() {
+    const manualFields = document.getElementById('manual-player-fields');
+    const profileBanner = document.getElementById('main-profile-banner');
+    const status = document.getElementById('main-auth-status');
+    const logoutBtn = document.getElementById('btn-main-logout');
+    if (!manualFields || !profileBanner || !status || !logoutBtn) return;
+
+    if (currentAuthProfile) {
+        manualFields.classList.add('hidden');
+        profileBanner.classList.remove('hidden');
+        profileBanner.innerHTML = `<strong>Παίζεις ως:</strong> ${currentAuthProfile.nickname} · ${currentAuthProfile.firstName} ${currentAuthProfile.lastName}`;
+        status.textContent = 'Το προφίλ σου είναι συνδεδεμένο. Μπορείς να ξεκινήσεις αμέσως παιχνίδι ή μονομαχία.';
+        logoutBtn.classList.remove('hidden');
+    } else {
+        manualFields.classList.remove('hidden');
+        profileBanner.classList.add('hidden');
+        profileBanner.textContent = '';
+        status.textContent = 'Συνδέσου για να παίξεις με το αποθηκευμένο προφίλ σου χωρίς να ξαναγράψεις στοιχεία.';
+        logoutBtn.classList.add('hidden');
+    }
+}
+
+async function handleMainAuthUser(userAccount) {
+    currentAuthUser = userAccount;
+    if (!userAccount) {
+        currentAuthProfile = null;
+        updateMainAuthUi();
+        return;
+    }
+
+    const storedProfile = await fetchMainProfile(userAccount.uid);
+    currentAuthProfile = storedProfile || deriveProfileFromAuth(userAccount);
+    document.getElementById('fname').value = currentAuthProfile.firstName || '';
+    document.getElementById('lname').value = currentAuthProfile.lastName || '';
+    updateMainAuthUi();
+}
+
+window.registerMainAccount = async function registerMainAccount() {
+    const email = document.getElementById('main-auth-email').value.trim();
+    const password = document.getElementById('main-auth-password').value;
+    if (!email || !password) {
+        document.getElementById('main-auth-status').textContent = 'Συμπλήρωσε email και password για register.';
+        return;
+    }
+    try {
+        await authApi.createUserWithEmailAndPassword(firebaseAuth, email, password);
+    } catch (error) {
+        document.getElementById('main-auth-status').textContent = `Register error: ${error.message}`;
+    }
+};
+
+window.loginMainAccount = async function loginMainAccount() {
+    const email = document.getElementById('main-auth-email').value.trim();
+    const password = document.getElementById('main-auth-password').value;
+    if (!email || !password) {
+        document.getElementById('main-auth-status').textContent = 'Συμπλήρωσε email και password για login.';
+        return;
+    }
+    try {
+        await authApi.signInWithEmailAndPassword(firebaseAuth, email, password);
+    } catch (error) {
+        document.getElementById('main-auth-status').textContent = `Login error: ${error.message}`;
+    }
+};
+
+window.loginMainWithGoogle = async function loginMainWithGoogle() {
+    try {
+        const provider = new authApi.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        await authApi.signInWithPopup(firebaseAuth, provider);
+    } catch (error) {
+        const code = error?.code || '';
+        if (code === 'auth/popup-blocked' || code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+            const provider = new authApi.GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' });
+            await authApi.signInWithRedirect(firebaseAuth, provider);
+            return;
+        }
+        document.getElementById('main-auth-status').textContent = `Google login error: ${error.message}`;
+    }
+};
+
+window.logoutMainAccount = async function logoutMainAccount() {
+    await authApi.signOut(firebaseAuth);
+};
 
 function createAttemptId() {
     return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
@@ -954,8 +1157,8 @@ function updateTimerDisplay() {
 }
 
 function startQuiz() {
-    const f = document.getElementById('fname').value.trim();
-    const l = document.getElementById('lname').value.trim();
+    const f = (currentAuthProfile?.firstName || document.getElementById('fname').value).trim();
+    const l = (currentAuthProfile?.lastName || document.getElementById('lname').value).trim();
     if (f.length < 2 || l.length < 2) { alert('Συμπλήρωσε τα στοιχεία σου.'); return; }
     if (!QUESTION_POOL.length) { alert('Δεν υπάρχουν διαθέσιμες ερωτήσεις για το quiz.'); return; }
     resetQuizState();
@@ -978,8 +1181,8 @@ function openDuelMode() {
 
 function restartQuiz() {
     resetQuizState();
-    document.getElementById('fname').value = '';
-    document.getElementById('lname').value = '';
+    document.getElementById('fname').value = currentAuthProfile?.firstName || '';
+    document.getElementById('lname').value = currentAuthProfile?.lastName || '';
     document.getElementById('score-display').textContent = '0';
     document.getElementById('timer-count').textContent = `${QUESTION_TIME}s`;
     document.getElementById('timer-count').classList.remove('urgent');
@@ -1271,7 +1474,17 @@ async function endQuiz() {
 
 document.title = QUIZ_TITLE;
 document.querySelector('#scr-login h1').textContent = QUIZ_TITLE;
-initFirebaseLeaderboard().finally(() => renderLeaderboard());
+initFirebaseLeaderboard().finally(async () => {
+    if (authApi && firebaseAuth) {
+        try {
+            await authApi.getRedirectResult(firebaseAuth);
+        } catch (error) {
+            document.getElementById('main-auth-status').textContent = `Google redirect error: ${error.message}`;
+        }
+    }
+    updateMainAuthUi();
+    renderLeaderboard();
+});
 </script>
 </body>
 </html>
