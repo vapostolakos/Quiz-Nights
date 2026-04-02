@@ -1103,6 +1103,16 @@ async function playWrongSound() {
     pulseTone(ctx, 164.81, startAt + 0.12, 0.22, 'sawtooth', 0.045);
 }
 
+async function playHelpSound() {
+    if (!soundEffectsEnabled) return;
+    const ctx = await ensureAudioContext();
+    if (!ctx) return;
+    const startAt = ctx.currentTime + 0.01;
+    pulseTone(ctx, 880, startAt, 0.08, 'square', 0.03);
+    pulseTone(ctx, 698.46, startAt + 0.1, 0.08, 'square', 0.026);
+    pulseTone(ctx, 880, startAt + 0.2, 0.09, 'square', 0.028);
+}
+
 function stopBackgroundMusic() {
     if (musicLoopTimer) {
         clearTimeout(musicLoopTimer);
@@ -1115,7 +1125,8 @@ async function startBackgroundMusic() {
     if (!musicEnabled) return;
     const ctx = await ensureAudioContext();
     if (!ctx) return;
-    const pattern = [261.63, 329.63, 392.0, 329.63, 293.66, 349.23, 440.0, 349.23];
+    const bassPattern = [130.81, 146.83, 155.56, 174.61, 130.81, 146.83, 155.56, 196.0];
+    const leadPattern = [261.63, 293.66, 311.13, 349.23, 329.63, 311.13, 293.66, 261.63];
     let noteIndex = 0;
     const loop = () => {
         if (!musicEnabled || !audioContext) {
@@ -1123,10 +1134,11 @@ async function startBackgroundMusic() {
             return;
         }
         const now = audioContext.currentTime + 0.02;
-        pulseTone(audioContext, pattern[noteIndex % pattern.length], now, 0.42, 'sine', 0.018);
-        pulseTone(audioContext, pattern[(noteIndex + 2) % pattern.length] / 2, now, 0.5, 'triangle', 0.009);
+        pulseTone(audioContext, bassPattern[noteIndex % bassPattern.length], now, 0.58, 'triangle', 0.012);
+        pulseTone(audioContext, leadPattern[noteIndex % leadPattern.length], now + 0.08, 0.34, 'sine', 0.014);
+        pulseTone(audioContext, leadPattern[(noteIndex + 3) % leadPattern.length] / 2, now, 0.5, 'sine', 0.006);
         noteIndex++;
-        musicLoopTimer = setTimeout(loop, 520);
+        musicLoopTimer = setTimeout(loop, 620);
     };
     loop();
 }
@@ -1135,11 +1147,11 @@ function updateAudioButtons() {
     const soundBtn = document.getElementById('btn-sound-toggle');
     const musicBtn = document.getElementById('btn-music-toggle');
     if (soundBtn) {
-        soundBtn.textContent = `Ήχοι: ${soundEffectsEnabled ? 'On' : 'Off'}`;
+        soundBtn.textContent = `${soundEffectsEnabled ? '🔊' : '🔇'} Ήχοι ${soundEffectsEnabled ? 'On' : 'Off'}`;
         soundBtn.classList.toggle('active', soundEffectsEnabled);
     }
     if (musicBtn) {
-        musicBtn.textContent = `Μουσική: ${musicEnabled ? 'On' : 'Off'}`;
+        musicBtn.textContent = `${musicEnabled ? '🎵' : '🎼'} Μουσική ${musicEnabled ? 'On' : 'Off'}`;
         musicBtn.classList.toggle('active', musicEnabled);
     }
 }
@@ -1902,6 +1914,7 @@ function use5050() {
     lifeline5050Used = true;
     applyLifelinePenalty(FIFTY_FIFTY_PENALTY);
     showHelpBadge();
+    playHelpSound();
     document.getElementById('btn-5050').disabled = true;
     const q = questions[cur];
     const btns = [...document.querySelectorAll('.option-btn')];
@@ -1917,6 +1930,7 @@ function useAudience() {
     lifelineAudienceUsed = true;
     applyLifelinePenalty(AUDIENCE_PENALTY);
     showHelpBadge();
+    playHelpSound();
     document.getElementById('btn-audience').disabled = true;
     const q = questions[cur];
     const btns = [...document.querySelectorAll('.option-btn')];
@@ -1959,6 +1973,7 @@ function useSwapQuestion() {
     lifelineSwapUsed = true;
     applyLifelinePenalty(SWAP_PENALTY);
     showHelpBadge();
+    playHelpSound();
     const nextQuestion = reserveQuestions.shift();
     if (!nextQuestion) return;
 
