@@ -33,16 +33,31 @@
             overflow-x: hidden;
         }
         body::before {
-            content: "Q\A U\A I\A Z\A ?";
+            content: "?\A \A ?\A \A ?\A \A ?\A \A ?\A \A ?\A \A ?\A \A ?\A \A ?";
             position: fixed;
-            left: 0.5rem;
-            top: 10vh;
+            left: 0;
+            top: 5vh;
             white-space: pre;
-            font-size: clamp(4.5rem, 11vw, 9rem);
+            font-size: clamp(3.5rem, 8vw, 7rem);
             font-weight: 900;
-            line-height: 0.85;
-            letter-spacing: 0.08em;
-            color: rgba(248, 250, 252, 0.08);
+            line-height: 0.9;
+            letter-spacing: 0.3em;
+            color: rgba(248, 250, 252, 0.09);
+            text-shadow:
+                70px 40px 0 rgba(14, 165, 233, 0.18),
+                210px 150px 0 rgba(168, 85, 247, 0.16),
+                360px 10px 0 rgba(245, 158, 11, 0.16),
+                520px 120px 0 rgba(16, 185, 129, 0.14),
+                760px 55px 0 rgba(239, 68, 68, 0.15),
+                980px 180px 0 rgba(56, 189, 248, 0.13),
+                1180px 90px 0 rgba(250, 204, 21, 0.14),
+                1340px 220px 0 rgba(236, 72, 153, 0.13),
+                120px 360px 0 rgba(251, 191, 36, 0.12),
+                310px 500px 0 rgba(34, 197, 94, 0.12),
+                540px 390px 0 rgba(99, 102, 241, 0.14),
+                780px 540px 0 rgba(14, 165, 233, 0.14),
+                1010px 420px 0 rgba(244, 114, 182, 0.12),
+                1240px 600px 0 rgba(245, 158, 11, 0.13);
             z-index: 0;
             pointer-events: none;
         }
@@ -77,11 +92,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
         }
         .home-logo-btn img {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: cover;
             border-radius: 18px;
             display: block;
         }
@@ -298,8 +314,8 @@
         }
         .login-auth-panel {
             position: fixed;
-            top: 2.8vh;
-            right: 1.6rem;
+            top: 98px;
+            right: 1.75rem;
             width: min(330px, calc(100vw - 2rem));
             background: rgba(15, 23, 42, 0.92);
             border: 1px solid var(--border);
@@ -988,7 +1004,7 @@
 </head>
 <body>
 <button class="home-logo-btn" onclick="goToHomePage()" title="Αρχική Σελίδα" aria-label="Αρχική Σελίδα">
-    <img src="./Quiz%20Nights-Logo.png" alt="Quiz Nights">
+    <img src="Quiz Nights-Logo.png" alt="Quiz Nights">
 </button>
 <div class="container">
 
