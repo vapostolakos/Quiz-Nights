@@ -904,6 +904,7 @@ const SWAP_PENALTY = 0.25;
 const HINT_PENALTY = 0.2;
 const AUDIENCE_PATTERN_KEY = 'quiz12_audience_pattern_count';
 const QUESTION_HISTORY_KEY = 'quiz12_recent_question_history';
+const QUESTION_CYCLE_QUEUE_KEY = 'quiz12_question_cycle_queue';
 
 const LEADERBOARD_KEY = FIREBASE_COLLECTION;
 let questions = [];
@@ -1440,21 +1441,66 @@ function saveQuestionHistory(history) {
     } catch {}
 }
 
+function getQuestionCycleQueue() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(QUESTION_CYCLE_QUEUE_KEY) || '[]');
+        return Array.isArray(raw) ? raw : [];
+    } catch {
+        return [];
+    }
+}
+
+function saveQuestionCycleQueue(queue) {
+    try {
+        localStorage.setItem(QUESTION_CYCLE_QUEUE_KEY, JSON.stringify(queue));
+    } catch {}
+}
+
+function getUniqueQuestionMap() {
+    const questionMap = new Map();
+    QUESTION_POOL.forEach(question => {
+        const id = getQuestionId(question);
+        if (!questionMap.has(id)) {
+            questionMap.set(id, question);
+        }
+    });
+    return questionMap;
+}
+
 function initializeQuestionSet() {
-    const history = getQuestionHistory();
-    const historySet = new Set(history);
-    const freshPool = QUESTION_POOL.filter(question => !historySet.has(getQuestionId(question)));
-    const basePool = freshPool.length >= QUESTIONS_PER_GAME ? freshPool : QUESTION_POOL;
-    const shuffled = shuffleArray(basePool);
-    const totalQuestions = Math.min(QUESTIONS_PER_GAME, shuffled.length);
+    const questionMap = getUniqueQuestionMap();
+    const allIds = Array.from(questionMap.keys());
+    let queue = getQuestionCycleQueue().filter(id => questionMap.has(id));
 
-    questions = shuffled.slice(0, totalQuestions).map(shuffleQuestionOptions);
-    reserveQuestions = shuffled.slice(totalQuestions).map(shuffleQuestionOptions);
+    if (!queue.length) {
+        queue = shuffleArray(allIds);
+    }
 
-    const selectedIds = questions.map(getQuestionId);
-    const nextHistory = [...history.filter(id => !selectedIds.includes(id)), ...selectedIds];
-    const maxHistory = Math.max(QUESTIONS_PER_GAME, QUESTION_POOL.length - QUESTIONS_PER_GAME);
-    saveQuestionHistory(nextHistory.slice(-maxHistory));
+    const selectedIds = [];
+    while (selectedIds.length < QUESTIONS_PER_GAME && questionMap.size) {
+        if (!queue.length) {
+            const refillIds = allIds.filter(id => !selectedIds.includes(id));
+            if (!refillIds.length) break;
+            queue = shuffleArray(refillIds);
+        }
+
+        const nextId = queue.shift();
+        if (!nextId || selectedIds.includes(nextId)) continue;
+        selectedIds.push(nextId);
+    }
+
+    questions = selectedIds
+        .map(id => questionMap.get(id))
+        .filter(Boolean)
+        .map(shuffleQuestionOptions);
+
+    reserveQuestions = queue
+        .map(id => questionMap.get(id))
+        .filter(Boolean)
+        .map(shuffleQuestionOptions);
+
+    saveQuestionCycleQueue(queue);
+    saveQuestionHistory(selectedIds.slice(-Math.max(QUESTIONS_PER_GAME, 20)));
 }
 
 function getCurrentQuestionPoints() {
