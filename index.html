@@ -111,6 +111,10 @@
             backdrop-filter: blur(10px);
             position: relative;
             z-index: 1;
+            transition: margin 0.2s ease;
+        }
+        body.login-screen-active .container {
+            margin-right: min(370px, 30vw);
         }
         #scr-login {
             position: relative;
@@ -314,7 +318,7 @@
         }
         .login-auth-panel {
             position: fixed;
-            top: 98px;
+            top: 18px;
             right: 1.75rem;
             width: min(330px, calc(100vw - 2rem));
             background: rgba(15, 23, 42, 0.92);
@@ -942,13 +946,20 @@
             }
         }
         @media (max-width: 640px) {
-            .container { padding: 1rem; }
+            .container {
+                padding: 1rem;
+                padding-top: 4.75rem;
+            }
+            body.login-screen-active .container {
+                margin-right: 0;
+            }
             .home-logo-btn {
-                width: 68px;
-                height: 68px;
-                top: 12px;
-                left: 12px;
-                border-radius: 18px;
+                width: 54px;
+                height: 54px;
+                top: 10px;
+                left: 10px;
+                padding: 4px;
+                border-radius: 16px;
             }
             .login-auth-panel {
                 position: static;
@@ -2512,6 +2523,7 @@ function show(id) {
     ['scr-login', 'scr-reviews', 'scr-quiz', 'scr-end', 'scr-leaderboard'].forEach(s => {
         document.getElementById(s).classList.toggle('hidden', s !== id);
     });
+    document.body.classList.toggle('login-screen-active', id === 'scr-login');
 }
 
 function updateTimerDisplay() {
@@ -2906,6 +2918,7 @@ async function endQuiz() {
 
 document.title = QUIZ_TITLE;
 document.querySelector('#scr-login h1').textContent = QUIZ_TITLE;
+document.body.classList.add('login-screen-active');
 updateAudioButtons();
 resetReviewForm();
 initFirebaseLeaderboard().finally(async () => {
