@@ -1277,10 +1277,18 @@ const REVIEW_COLLECTION = 'quiz12_reviews';
 const QUESTION_TIME = 45;
 const DUEL_MODE_URL = 'https://vapostolakos.github.io/quiz12-duel/';
 const ADMIN_CONFIG = window.QUIZ_ADMIN || { username: '', password: '' };
+function normalizeQuestionEntry(question) {
+    if (!question || !Array.isArray(question.o)) return null;
+    return {
+        ...question,
+        img: question.img || question.image || question.imageUrl || ''
+    };
+}
+
 const QUESTION_POOL = [
     ...(Array.isArray(window.QUIZ12_QUESTIONS) ? window.QUIZ12_QUESTIONS : []),
     ...(Array.isArray(window.QUIZ12_AUTO_QUESTIONS) ? window.QUIZ12_AUTO_QUESTIONS : [])
-];
+].map(normalizeQuestionEntry).filter(Boolean);
 const QUESTIONS_PER_GAME = 10;
 const DEFAULT_AVATAR_OPTIONS = [
     { key: 'man-1', emoji: '👨', bg: '#1d4ed8' },
@@ -2092,7 +2100,7 @@ function buildQuestionSelection(questionMap, count) {
 function filterQuestionMapByMode(questionMap, mode = currentQuizMode) {
     const normalizedMode = mode === 'image' ? 'image' : 'knowledge';
     return new Map(Array.from(questionMap.entries()).filter(([, question]) => {
-        const hasImage = !!(question?.img && String(question.img).trim());
+        const hasImage = !!String(question?.img || question?.image || question?.imageUrl || '').trim();
         return normalizedMode === 'image' ? hasImage : !hasImage;
     }));
 }
