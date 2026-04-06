@@ -742,6 +742,37 @@
             align-items: center;
             gap: 8px;
         }
+        .option-btn.option-image {
+            padding: 12px;
+            align-items: stretch;
+        }
+        .option-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+        }
+        .option-btn.option-image .option-main {
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+        }
+        .option-image-thumb {
+            width: 100%;
+            aspect-ratio: 16 / 10;
+            object-fit: cover;
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.72);
+            border: 1px solid rgba(255,255,255,0.08);
+            display: block;
+        }
+        .option-image-caption {
+            text-align: center;
+            font-weight: 700;
+            color: var(--text);
+            min-height: 1.25rem;
+        }
         .option-btn.correct { background: var(--success); }
         .option-btn.wrong { background: var(--danger); }
         .option-btn.hidden-by-5050 { visibility: hidden; }
@@ -2016,6 +2047,32 @@ function localizeOptionText(question, optionText) {
     return IMAGE_OPTION_TRANSLATIONS[optionText] || optionText;
 }
 
+function normalizeQuestionOption(question, option) {
+    if (option && typeof option === 'object' && !Array.isArray(option)) {
+        const src = String(option.src || option.img || option.image || '').trim();
+        const rawLabel = String(option.label || option.text || option.name || '').trim();
+        const localizedLabel = rawLabel ? localizeOptionText(question, rawLabel) : '';
+        if (src) {
+            return { type: 'image', src, label: localizedLabel };
+        }
+        return { type: 'text', text: localizedLabel || rawLabel || '' };
+    }
+
+    if (question?.optionType === 'image') {
+        return { type: 'image', src: String(option || '').trim(), label: '' };
+    }
+
+    return { type: 'text', text: localizeOptionText(question, String(option || '')) };
+}
+
+function getQuestionOptionDisplayText(question, option) {
+    const normalized = normalizeQuestionOption(question, option);
+    if (normalized.type === 'image') {
+        return normalized.label || 'Εικόνα επιλογής';
+    }
+    return normalized.text;
+}
+
 function getQuestionId(question) {
     return question?.id || question?.q || JSON.stringify(question);
 }
@@ -2229,9 +2286,9 @@ function buildAnswerReview() {
             questionIndex: index,
             questionText: question.q,
             selectedIndex,
-            selectedText: selectedIndex >= 0 ? localizeOptionText(question, question.o[selectedIndex]) : 'Καμία απάντηση',
+            selectedText: selectedIndex >= 0 ? getQuestionOptionDisplayText(question, question.o[selectedIndex]) : 'Καμία απάντηση',
             correctIndex: question.a,
-            correctText: localizeOptionText(question, question.o[question.a]),
+            correctText: getQuestionOptionDisplayText(question, question.o[question.a]),
             isCorrect: !!answer?.isCorrect,
             rationale: question.r
         };
@@ -2900,16 +2957,31 @@ function loadQuestion() {
     const box = document.getElementById('options-box');
     box.innerHTML = '';
     q.o.forEach((opt, i) => {
+        const optionData = normalizeQuestionOption(q, opt);
         const btn = document.createElement('button');
         btn.className = 'option-btn';
         btn.dataset.idx = i;
-
-        const label = document.createElement('span');
-        label.textContent = localizeOptionText(q, opt);
+        if (optionData.type === 'image') {
+            btn.classList.add('option-image');
+        }
+        const main = document.createElement('span');
+        main.className = 'option-main';
+        const label = document.createElement(optionData.type === 'image' ? 'div' : 'span');
+        if (optionData.type === 'image') {
+            const image = document.createElement('img');
+            image.className = 'option-image-thumb';
+            image.src = optionData.src;
+            image.alt = optionData.label || `Επιλογή ${i + 1}`;
+            main.appendChild(image);
+            label.className = 'option-image-caption';
+            label.textContent = optionData.label || '';
+        } else {
+            label.textContent = optionData.text;
+        }
         const pct = document.createElement('span');
         pct.className = 'audience-pct';
-
-        btn.appendChild(label);
+        main.appendChild(label);
+        btn.appendChild(main);
         btn.appendChild(pct);
 
         if (isAnswered) {
