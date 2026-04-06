@@ -2082,6 +2082,19 @@ function getQuestionId(question) {
     return question?.id || question?.q || JSON.stringify(question);
 }
 
+function questionHasImageContent(question) {
+    if (!question) return false;
+    const directImage = !!String(question.img || question.image || question.imageUrl || '').trim();
+    if (directImage) return true;
+    if (question.optionType === 'image' && Array.isArray(question.o)) {
+        return question.o.some(option => {
+            if (typeof option === 'string') return !!String(option).trim();
+            return !!String(option?.src || option?.img || option?.image || '').trim();
+        });
+    }
+    return false;
+}
+
 function getUniqueQuestionMap() {
     const questionMap = new Map();
     QUESTION_POOL.forEach(question => {
@@ -2187,10 +2200,7 @@ function buildQuestionSelection(questionMap, count) {
     const unseenIds = allIds.filter(id => !seenSet.has(id));
     const revisitableIds = allIds.filter(id => seenSet.has(id) && !recentSet.has(id));
     const recentOnlyIds = allIds.filter(id => recentSet.has(id));
-    const imageSet = new Set(allIds.filter(id => {
-        const question = questionMap.get(id);
-        return !!(question?.img && String(question.img).trim());
-    }));
+    const imageSet = new Set(allIds.filter(id => questionHasImageContent(questionMap.get(id))));
 
     const targetImageCount = Math.min(
         Math.max(2, Math.ceil(count * 0.3)),
@@ -2237,7 +2247,7 @@ function buildQuestionSelection(questionMap, count) {
 function filterQuestionMapByMode(questionMap, mode = currentQuizMode) {
     const normalizedMode = mode === 'image' ? 'image' : 'knowledge';
     return new Map(Array.from(questionMap.entries()).filter(([, question]) => {
-        const hasImage = !!String(question?.img || question?.image || question?.imageUrl || '').trim();
+        const hasImage = questionHasImageContent(question);
         return normalizedMode === 'image' ? hasImage : !hasImage;
     }));
 }
