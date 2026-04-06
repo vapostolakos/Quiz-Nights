@@ -2458,8 +2458,17 @@ function renderReviewStars(rating) {
 }
 
 function getCurrentUserReviewEntry(entries = reviewEntriesCache) {
-    if (!currentAuthUser?.uid) return null;
-    return (entries || []).find(entry => String(entry.authUid || '').trim() === currentAuthUser.uid) || null;
+    const normalizedEntries = Array.isArray(entries) ? entries : [];
+    const authUid = String(currentAuthUser?.uid || '').trim();
+    const displayName = String(getReviewDisplayName() || '').trim().toLowerCase();
+
+    if (authUid) {
+        const byUid = normalizedEntries.find(entry => String(entry.authUid || '').trim() === authUid);
+        if (byUid) return byUid;
+    }
+
+    if (!displayName) return null;
+    return normalizedEntries.find(entry => String(entry.authorName || '').trim().toLowerCase() === displayName) || null;
 }
 
 function updateReviewEditorUi() {
@@ -2579,6 +2588,9 @@ function resetReviewForm() {
 window.openReviews = async function openReviews() {
     show('scr-reviews');
     await fetchReviews();
+    if (currentUserReviewEntry) {
+        loadReviewIntoForm(currentUserReviewEntry);
+    }
 };
 
 window.editMyReview = async function editMyReview() {
